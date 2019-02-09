@@ -16,6 +16,7 @@ class TestBox():
     def test_dtype(self):
         box = Box(lengths=np.zeros(3))
         assert box.lengths.dtype == float
+        assert box.angles.dtype == float
 
     def test_lengths_setter(self):
         box = Box(lengths=np.ones(3))
@@ -29,12 +30,15 @@ class TestBox():
         box.angles = angles
         assert (box.angles == angles).all()
 
-    @pytest.mark.parametrize('lengths', [[3, 3, 3], [4, 4, 4],
-        [4, 6, 4]])
-    def test_setters_with_lists(self, lengths):
+    @pytest.mark.parametrize('lengths, angles', [([3, 3, 3],
+        [90.0, 90.0, 90.0]), ([4, 4, 4], [30.0, 60.0, 70.0]),
+        ([4, 6, 4], [45.0, 45.0, 75.0])])
+    def test_setters_with_lists(self, lengths, angles):
         box = Box(lengths=np.ones(3))
         box.lengths = lengths
+        box.angles = angles
         assert (box.lengths == lengths).all()
+        assert (box.angles == angles).all()
 
     def test_default_angles(self):
         box = Box(lengths=np.zeros(3))
@@ -47,3 +51,8 @@ class TestBox():
                                 [0.5, 0.86603, 0],
                                 [0.64278, 0.51344, 0.56852]])
         assert np.isclose(box.vectors(), test_vectors)
+
+    def test_negative_z_vector(self):
+        box = Box(lengths=np.ones(3), angles=[-90.0, -40.0, 20.0])
+        with pytest.raises(Warning):
+            box.unit_vectors_from_angles()
